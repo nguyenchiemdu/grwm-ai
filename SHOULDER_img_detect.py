@@ -54,7 +54,6 @@ A,B,C = linear_equation(slope,intersection_point)
 point = intersection_point
 # print(point[0],point[1])
 # print(remove_bg_img[point[0],point[1]])
-remove_bg_img  = cv2.flip(remove_bg_img,1)
 while (remove_bg_img[point[1],point[0],3] >0):
     # cv2.circle(remove_bg_img, point, 5, (0,0,255,1), -1)
     point = point_to_right(A,B,C,5, point)

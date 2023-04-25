@@ -25,7 +25,7 @@ def remove_background(bg_image,image):
     # Apply the inverted mask to the original frame to remove the background
     removed_bg = cv2.bitwise_and(image, image, mask=inverted_mask)
 
-    frame = cv2.flip(image, 1)
+    frame = image
     height , width, channel = frame.shape
 
     frame_with_alpha = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
