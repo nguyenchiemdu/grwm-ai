@@ -8,11 +8,11 @@ def get_positon(name):
     yl = int(results.pose_landmarks.landmark[mp_pose.PoseLandmark['LEFT_'+name]].y * image.shape[0])
     xr = int(results.pose_landmarks.landmark[mp_pose.PoseLandmark['RIGHT_'+name]].x * image.shape[1])
     yr = int(results.pose_landmarks.landmark[mp_pose.PoseLandmark['RIGHT_'+name]].y * image.shape[0])
-    return xl,yl,xr,yr
+    return (xl,yl),(xr,yr)
 
-def expand_point(xl,yl,xr,yr,scale = 0.1):
-    point_a =  (xl, yl)
-    point_b = (xr, yr)
+def expand_point(point_a,point_b,scale = 0.1):
+    # point_a =  (xl, yl)
+    # point_b = (xr, yr)
     ab_distance = np.sqrt((point_b[0] - point_a[0])**2 + (point_b[1] - point_a[1])**2)
     bc_distance = ab_distance * scale
     unit_vector_ab = ((point_b[0] - point_a[0]) / ab_distance, (point_b[1] - point_a[1]) / ab_distance)
@@ -36,9 +36,13 @@ def draw_positon(name):
     x = int(results.pose_landmarks.landmark[mp_pose.PoseLandmark['LEFT_'+name]].x * image.shape[1])
     y = int(results.pose_landmarks.landmark[mp_pose.PoseLandmark['LEFT_'+name]].y * image.shape[0])
     cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
+    cv2.putText(image, f"{x}:{y}", (x,y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
+
     x = int(results.pose_landmarks.landmark[mp_pose.PoseLandmark['RIGHT_'+name]].x * image.shape[1])
     y = int(results.pose_landmarks.landmark[mp_pose.PoseLandmark['RIGHT_'+name]].y * image.shape[0])
     cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
+    cv2.putText(image, f"{x}:{y}", (x,y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
+
 def remove_background(bg_image):
     # Remove background
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -109,27 +113,24 @@ def border_detect(img):
     # Show the result
     cv2.imshow('Result', img)
 
-def find_diagonal_intersection(p1, p2, p4, p3):
+def find_diagonal_intersection(p1, p2, p3, p4):
     print(p1,p2,p4,p3)
     # Find intersection of two diagonals
-    x1, y1 = p1
-    x2, y2 = p2
-    x3, y3 = p3
-    x4, y4 = p4
+    y1, x1 = p1
+    y2, x2 = p2
+    y3, x3 = p3
+    y4, x4 = p4
     
-    # Find slopes of two diagonals
-    m1 = (y2 - y1) / (x2 - x1)
-    m2 = (y4 - y3) / (x4 - x3)
+    a = y1-y2
+    b = x2-x1
+    c = y3-y4
+    d = x4-x3
+    y = (c*x3+d*y3-c*(x1+b/a*y1))/(d-c*b/a)
+    x = x1+b/a*y1-b/a*y
+
+
     
-    # Find y-intercepts of two diagonals
-    b1 = y1 - m1 * x1
-    b2 = y3 - m2 * x3
-    
-    # Find intersection point of two lines
-    x_intersect = (b2 - b1) / (m1 - m2)
-    y_intersect = m1 * x_intersect + b1
-    
-    return (x_intersect, y_intersect)
+    return (int(y),int(x))
 
 
 
@@ -154,30 +155,30 @@ results = pose.process(image)
 #  Prepare list of 4 point for crop images
 listPoint = []
 if results.pose_landmarks:
-    xl,yl,xr,yr =  get_positon('SHOULDER')
-    shoulder_l,shoulder_r =  expand_point(xl,yl,xr,yr,scale=0.15)
-    img = cv2.line(image,  (xl, yl), (xr, yr), (0, 255, 0), 1)
-    listPoint.append(shoulder_l)
-    listPoint.append(shoulder_r)
-    xl,yl,xr,yr =  get_positon('HIP')
-    hip_l,hip_r =  expand_point(xl,yl,xr,yr,scale=0.4)
-    img = cv2.line(image,  (xl, yl), (xr, yr), (0, 255, 0), 1)
-    listPoint.append(hip_l)
-    listPoint.append(hip_r)
+    shoulder_l,shoulder_r =  get_positon('SHOULDER')
+    expand_point(shoulder_l,shoulder_r,scale=0.15)
+    img = cv2.line(image,  shoulder_l, shoulder_r, (0, 255, 0), 1)
+    hip_l, hip_r =  get_positon('HIP')
+    expand_point(hip_l,hip_r,scale=0.4)
+    img = cv2.line(image,  hip_l, hip_r, (0, 255, 0), 1)
     draw_positon('SHOULDER')
     draw_positon('HIP')
     draw_positon('EYE')
     draw_positon('ELBOW')
     draw_positon('WRIST')
-    intersection_point =   find_diagonal_intersection(listPoint[1],listPoint[3],listPoint[0],listPoint[2])
+
+    listPoint = [shoulder_l,hip_r,hip_l,shoulder_r]
+    print(listPoint)
+
+    intersection_point =   find_diagonal_intersection(*listPoint)
     print(intersection_point)
-    cv2.circle(image, intersection_point, 5, (0, 255, 0), -1)
+    cv2.circle(img, intersection_point, 5, (0, 255, 0), -1)
 
 remove_bg_img = remove_background(bg_image)
-cv2.imwrite('output_image.png', remove_bg_img)
+cv2.imwrite('output_image.png', img)
 # Crop image
-crop = crop_image(remove_bg_img,listPoint)
-cv2.imwrite('output_croped.png', crop)
-border_detect(img)
+# crop = crop_image(remove_bg_img,listPoint)
+# cv2.imwrite('output_croped.png', crop)
+cv2.imshow("Res",img)
 # cv2.waitKey(0)
 cv2.destroyAllWindows()
