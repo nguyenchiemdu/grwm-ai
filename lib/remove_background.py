@@ -37,7 +37,7 @@ def remove_background(bg_image,image):
     # extract segmented mask
     mask = results.segmentation_mask
     condition = np.stack(
-        (results.segmentation_mask,) * 4, axis=-1) > 0.5
+        (results.segmentation_mask,) * 4, axis=-1) > 0.4
 
     # resize the background image to the same size of the original frame
     bg_image = cv2.resize(bg_image, (width, height))
