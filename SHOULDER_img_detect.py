@@ -4,7 +4,9 @@ import cv2
 from lib.get_position import get_position
 from lib.draw_position import draw_position
 from lib.expand_point import get_expand_point
-from lib.remove_background import remove_background
+# from lib.remove_background import remove_background
+
+from lib.deeplabv3_resnet50 import remove_background,load_model
 from lib.crop_image import crop_image
 from lib.algebra import (
     breadth_point,
@@ -13,15 +15,20 @@ from lib.algebra import (
     find_slope,
     point_to_left,
     point_up,
+    point_down
 )
 from lib.pose import pose
 
 ouput_path = "output/"
-input_path = "input/"
+input_path = "./input/"
 # Load the input image
-image = cv2.imread(f"{input_path}input.png")
+input_name = "chuong.JPG"
+image = cv2.imread(f"{input_path}{input_name}")
 bg_image = cv2.imread(f"{input_path}transparent.png", cv2.IMREAD_UNCHANGED)
-remove_bg_img = remove_background(bg_image, image)
+# remove_bg_img = remove_background(bg_image, image)
+deeplab_model = load_model()
+remove_bg_img = remove_background(deeplab_model, f"{input_path}{input_name}")
+
 #  body landmarks
 results = pose.process(image)
 if results.pose_landmarks:
@@ -103,5 +110,5 @@ cv2.circle(remove_bg_img, shoulder_right, 5, (0, 255, 255, 255), -1)
 
 
 
-cv2.imwrite(f"{ouput_path}remove_bg_img.png", remove_bg_img)
+cv2.imwrite(f"{ouput_path}result_{input_name.split('.')[0]}.png", remove_bg_img)
 # cv2.imwrite(f"{ouput_path}croped_image.png", croped_image)
