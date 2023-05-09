@@ -60,8 +60,28 @@ if results.pose_landmarks:
 
 shoulder_slope = find_slope(shoulder_l, shoulder_r)
 hip_slope = find_slope(hip_l, hip_r)
-slope = (shoulder_slope + hip_slope) / 2
-left,right = breadth_point(slope,intersection_point,remove_bg_img)
+# slope = (shoulder_slope + hip_slope) / 2
+slope = hip_slope 
+
+point = intersection_point
+A, B, C = linear_equation(slope, point)
+
+for i in range(0,20):
+    point = point_up(A,B,C,5,point)
+    left,right = breadth_point(slope,point,remove_bg_img)
+    cv2.line(remove_bg_img, left, right, (0, 0, 255,255), 1)
+    cv2.circle(remove_bg_img, left, 5, (0, 0, 255, 255), -1)
+    cv2.circle(remove_bg_img, right, 5, (0, 0, 255, 255), -1)
+
+point = intersection_point
+A, B, C = linear_equation(slope, point)
+
+for i in range(0,20):
+    point = point_down(A,B,C,5,point)
+    left,right = breadth_point(slope,point,remove_bg_img)
+    cv2.line(remove_bg_img, left, right, (0, 0, 255,255), 1)
+    cv2.circle(remove_bg_img, left, 5, (0, 0, 255, 255), -1)
+    cv2.circle(remove_bg_img, right, 5, (0, 0, 255, 255), -1)
 
 
 
