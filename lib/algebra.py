@@ -88,3 +88,8 @@ def breadth_point(slope, p, image):
         point = point_to_left(A, B, C, 5, point)
     left = point
     return left, right
+
+def distance_2points(a,b):
+    x1,y1 = a
+    x2,y2 = b
+    return sqrt((x2-x1)**2 + (y2-y1)**2)

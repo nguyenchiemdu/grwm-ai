@@ -1,6 +1,6 @@
 # TODO: Upload your file and define the filename input_file
 # Optional: Also upload or define the background file/url
-input_file = './input/chuong2.JPG'
+input_file = './test/Photo 2023-05-01, 10 34 19 AM.jpg'
 background_url = 'https://images.unsplash.com/photo-1475139441338-693e7dbe20b6?auto=format&fit=crop&w=640&q=427'
 
 # background_file = '/deeblabv3/background.jpg'
